@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Repostería - Pedidos & Catálogo</title>
+  <title>Delicias Caseras - Pedidos & Catálogo</title>
   <!-- Tailwind CSS -->
   <script src="https://cdn.tailwindcss.com"></script>
   <!-- Lucide Icons -->
@@ -19,9 +19,10 @@
 </head>
 <body class="bg-pink-50/40 text-slate-800 min-h-screen flex flex-col">
 
-  <!-- CONFIGURACIÓN DE NUMERO DE WHATSAPP -->
+  <!-- CONFIGURACIÓN DE NUMERO DE WHATSAPP Y CLAVE DE ACCESO -->
   <script>
     const WHATSAPP_NUMBER = "5493755652469"; 
+    const ADMIN_PIN = "1234"; // <--- PUEDES CAMBIAR ESTA CONTRASEÑA AQUÍ
   </script>
 
   <!-- NAVBAR -->
@@ -44,7 +45,7 @@
           <span>Catálogo</span>
         </button>
 
-        <button id="btnViewAdmin" onclick="switchView('admin')" class="px-3 py-1.5 rounded-xl text-sm font-semibold text-slate-600 hover:text-slate-900 hover:bg-slate-100 flex items-center gap-2 transition">
+        <button id="btnViewAdmin" onclick="requestAdminAccess()" class="px-3 py-1.5 rounded-xl text-sm font-semibold text-slate-600 hover:text-slate-900 hover:bg-slate-100 flex items-center gap-2 transition">
           <i data-lucide="chef-hat" class="w-4 h-4"></i>
           <span class="hidden sm:inline">Panel Repostera</span>
         </button>
@@ -66,7 +67,7 @@
       <!-- HERO BANNER -->
       <div class="bg-gradient-to-r from-pink-500 to-rose-400 rounded-2xl p-6 sm:p-8 text-white shadow-lg relative overflow-hidden">
         <div class="max-w-xl z-10 relative">
-          <span class="px-3 py-1 bg-white/20 text-xs font-bold uppercase tracking-wider rounded-full backdrop-blur-sm">Fabricado 100% con Amor</span>
+          <span class="px-3 py-1 bg-white/20 text-xs font-bold uppercase tracking-wider rounded-full backdrop-blur-sm">Fabricado 100% con amor</span>
           <h2 class="text-2xl sm:text-4xl font-extrabold mt-2 mb-3">Tus momentos especiales merecen el mejor sabor 🧁</h2>
           <p class="text-pink-100 text-sm sm:text-base">Haz tu pedido con anticipación para garantizarnos de endulzar tu fiesta o reunión.</p>
         </div>
@@ -106,6 +107,10 @@
           <button onclick="openProductModal()" class="px-4 py-2 bg-pink-500 hover:bg-pink-600 text-white rounded-xl text-sm font-semibold flex items-center gap-2 transition shadow-md shadow-pink-200">
             <i data-lucide="plus" class="w-4 h-4"></i>
             <span>Nuevo Producto</span>
+          </button>
+          <button onclick="logoutAdmin()" class="px-3 py-2 bg-slate-100 hover:bg-slate-200 text-slate-600 rounded-xl text-sm font-semibold flex items-center gap-1.5 transition" title="Cerrar Sesión">
+            <i data-lucide="log-out" class="w-4 h-4"></i>
+            <span class="hidden sm:inline">Salir</span>
           </button>
         </div>
       </div>
@@ -171,13 +176,42 @@
       <!-- TAB 2: PRODUCTOS -->
       <div id="adminTabProducts" class="hidden space-y-4">
         <div id="adminProductsList" class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
-          <!-- Renderizado dinámico de tarjetas de administración -->
+          <!-- Renderizado dinámico -->
         </div>
       </div>
 
     </section>
 
   </main>
+
+  <!-- ==================== MODAL DE ACCESO PANEL REPOSTERA ==================== -->
+  <div id="loginModal" class="fixed inset-0 z-50 overflow-y-auto hidden">
+    <div class="min-h-screen px-4 flex items-center justify-center">
+      <div class="fixed inset-0 bg-slate-900/40 backdrop-blur-sm" onclick="closeLoginModal()"></div>
+
+      <div class="bg-white rounded-2xl shadow-xl max-w-sm w-full p-6 relative z-10 space-y-4 text-center">
+        <div class="w-12 h-12 bg-pink-100 text-pink-600 rounded-full flex items-center justify-center mx-auto">
+          <i data-lucide="lock" class="w-6 h-6"></i>
+        </div>
+        <div>
+          <h3 class="font-bold text-lg text-slate-900">Acceso Privado</h3>
+          <p class="text-xs text-slate-500 mt-1">Ingresa la contraseña para acceder al Panel de la Repostera.</p>
+        </div>
+
+        <form onsubmit="verifyAdminPin(event)" class="space-y-3">
+          <div>
+            <input type="password" id="pinInput" placeholder="Contraseña..." autofocus class="w-full text-center px-4 py-2.5 border border-slate-300 rounded-xl text-base font-bold tracking-widest focus:outline-none focus:ring-2 focus:ring-pink-400">
+            <p id="pinError" class="text-xs text-rose-500 font-semibold mt-1 hidden">Contraseña incorrecta. Inténtalo de nuevo.</p>
+          </div>
+
+          <div class="flex gap-2 pt-2">
+            <button type="button" onclick="closeLoginModal()" class="w-1/2 py-2 border border-slate-300 rounded-xl text-sm font-semibold text-slate-600 hover:bg-slate-50">Cancelar</button>
+            <button type="submit" class="w-1/2 py-2 bg-pink-500 hover:bg-pink-600 text-white font-bold rounded-xl text-sm shadow-md shadow-pink-200">Ingresar</button>
+          </div>
+        </form>
+      </div>
+    </div>
+  </div>
 
   <!-- ==================== DRAWER DEL CARRITO ==================== -->
   <div id="cartDrawer" class="fixed inset-0 z-50 overflow-hidden hidden">
@@ -351,6 +385,7 @@
         name: "Tarta Chocotorta",
         category: "Postres",
         price: 14500,
+        unitType: "un",
         desc: "El clásico argentino: galletitas chocolinas embebidas en café con crema de dulce de leche y queso.",
         image: "https://images.unsplash.com/photo-1535141192574-5d4897c13136?auto=format&fit=crop&w=600&q=80",
         available: true
@@ -362,6 +397,7 @@
     let orders = JSON.parse(localStorage.getItem('repo_orders')) || [];
     let cart = [];
     let currentCategory = 'all';
+    let isAdminAuthenticated = sessionStorage.getItem('admin_authenticated') === 'true';
 
     // GUARDAR EN LOCALSTORAGE
     function saveToStorage() {
@@ -381,6 +417,41 @@
       tomorrow.setDate(tomorrow.getDate() + 1);
       document.getElementById('deliveryDate').value = tomorrow.toISOString().split('T')[0];
     });
+
+    // CONTROL DE ACCESO AL PANEL ADMIN
+    function requestAdminAccess() {
+      if(isAdminAuthenticated) {
+        switchView('admin');
+      } else {
+        document.getElementById('pinInput').value = '';
+        document.getElementById('pinError').classList.add('hidden');
+        document.getElementById('loginModal').classList.remove('hidden');
+      }
+    }
+
+    function verifyAdminPin(e) {
+      e.preventDefault();
+      const inputPin = document.getElementById('pinInput').value;
+
+      if(inputPin === ADMIN_PIN) {
+        isAdminAuthenticated = true;
+        sessionStorage.setItem('admin_authenticated', 'true');
+        closeLoginModal();
+        switchView('admin');
+      } else {
+        document.getElementById('pinError').classList.remove('hidden');
+      }
+    }
+
+    function closeLoginModal() {
+      document.getElementById('loginModal').classList.add('hidden');
+    }
+
+    function logoutAdmin() {
+      isAdminAuthenticated = false;
+      sessionStorage.removeItem('admin_authenticated');
+      switchView('client');
+    }
 
     // CAMBIAR ENTRE VISTAS (CLIENTE / ADMIN)
     function switchView(view) {
@@ -580,7 +651,7 @@
       saveToStorage();
       renderAdminOrders();
 
-      let msg = `*¡Hola Dulce Arte! Quiero realizar un pedido:* 🎂\n\n`;
+      let msg = `*¡Hola Delicias Caseras! Quiero realizar un pedido:* 🎂\n\n`;
       msg += `👤 *Cliente:* ${clientName}\n`;
       msg += `📅 *Fecha Entrega:* ${deliveryDate} ${deliveryTime ? 'a las ' + deliveryTime : ''}\n`;
       if(notes) msg += `📝 *Notas:* ${notes}\n`;
