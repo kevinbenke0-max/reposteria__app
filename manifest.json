@@ -1,0 +1,16 @@
+{
+  "name": "Delicias Caseras - Repostería",
+  "short_name": "Delicias Caseras",
+  "start_url": "./index.html",
+  "display": "standalone",
+  "background_color": "#fff1f2",
+  "theme_color": "#ec4899",
+  "icons": [
+    {
+      "src": "logo.jpg",
+      "sizes": "192x192 512x512",
+      "type": "image/jpeg",
+      "purpose": "any maskable"
+    }
+  ]
+}
