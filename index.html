@@ -278,6 +278,7 @@
 
         <form id="productForm" onsubmit="saveProduct(event)" class="space-y-3">
           <input type="hidden" id="prodId">
+          <input type="hidden" id="prodImageBase64">
           
           <div>
             <label class="block text-xs font-semibold text-slate-700 mb-1">Nombre del Producto *</label>
@@ -301,9 +302,13 @@
           </div>
 
           <div>
-            <label class="block text-xs font-semibold text-slate-700 mb-1">URL de la Imagen</label>
-            <input type="url" id="prodImage" placeholder="https://images.unsplash.com/..." class="w-full px-3 py-2 border border-slate-300 rounded-xl text-sm focus:ring-2 focus:ring-pink-400">
-            <span class="text-[10px] text-slate-400">Déjalo vacío para usar una imagen por defecto</span>
+            <label class="block text-xs font-semibold text-slate-700 mb-1">Foto del Producto (Desde la Galería)</label>
+            <div class="flex items-center gap-3">
+              <input type="file" id="prodImageFile" accept="image/*" onchange="previewImage(event)" class="w-full text-xs text-slate-500 file:mr-4 file:py-2 file:px-4 file:rounded-xl file:border-0 file:text-xs file:font-semibold file:bg-pink-50 file:text-pink-600 hover:file:bg-pink-100 cursor-pointer">
+            </div>
+            <div id="imagePreviewContainer" class="mt-2 hidden">
+              <img id="imagePreview" class="w-16 h-16 object-cover rounded-lg border border-slate-200">
+            </div>
           </div>
 
           <div>
@@ -482,7 +487,6 @@
       }
 
       updateCartUI();
-      // Abrir drawer suavemente al agregar
       document.getElementById('cartDrawer').classList.remove('hidden');
     }
 
@@ -564,7 +568,6 @@
 
       const total = cart.reduce((acc, item) => acc + (item.price * item.qty), 0);
 
-      // Crear objeto pedido para guardar localmente
       const newOrder = {
         id: "ORD-" + Date.now().toString().slice(-5),
         clientName,
@@ -573,7 +576,7 @@
         notes,
         items: [...cart],
         total,
-        status: "pending", // pending, preparing, done
+        status: "pending",
         createdAt: new Date().toISOString()
       };
 
@@ -581,7 +584,6 @@
       saveToStorage();
       renderAdminOrders();
 
-      // Formatear texto para WhatsApp
       let msg = `*¡Hola Dulce Arte! Quiero realizar un pedido:* 🎂\n\n`;
       msg += `👤 *Cliente:* ${clientName}\n`;
       msg += `📅 *Fecha Entrega:* ${deliveryDate} ${deliveryTime ? 'a las ' + deliveryTime : ''}\n`;
@@ -595,12 +597,10 @@
       msg += `\n💰 *Total Estimado:* $${total.toLocaleString()}\n\n`;
       msg += `Quedo a la espera de la confirmación. ¡Muchas gracias!`;
 
-      // Limpiar carrito
       cart = [];
       updateCartUI();
       toggleCartDrawer();
 
-      // Redirigir a WhatsApp
       const url = `https://wa.me/${WHATSAPP_NUMBER}?text=${encodeURIComponent(msg)}`;
       window.open(url, '_blank');
     }
@@ -625,7 +625,6 @@
       }
     }
 
-    // RENDEREAR TABLERO KANBAN DE PEDIDOS
     function renderAdminOrders() {
       const colPending = document.getElementById('colPending');
       const colPreparing = document.getElementById('colPreparing');
@@ -670,7 +669,6 @@
             ${order.notes ? `<p class="text-[10px] text-slate-500 italic pt-1">"${order.notes}"</p>` : ''}
           </div>
 
-          <!-- BOTONES DE CAMBIO DE ESTADO -->
           <div class="flex gap-1 pt-1 justify-end">
             ${order.status === 'pending' ? `
               <button onclick="updateOrderStatus('${order.id}', 'preparing')" class="px-2.5 py-1 bg-blue-500 hover:bg-blue-600 text-white rounded-lg text-xs font-bold transition flex items-center gap-1">
@@ -711,7 +709,6 @@
       }
     }
 
-    // RENDEREAR TABLA DE PRODUCTOS
     function renderAdminProducts() {
       const tbody = document.getElementById('adminProductsTable');
       tbody.innerHTML = products.map(p => `
@@ -738,10 +735,26 @@
       `).join('');
     }
 
-    // MODAL DE PRODUCTO
+    // MANEJO DE IMAGEN DESDE LA GALERÍA
+    function previewImage(event) {
+      const file = event.target.files[0];
+      if (file) {
+        const reader = new FileReader();
+        reader.onload = function(e) {
+          document.getElementById('prodImageBase64').value = e.target.result;
+          document.getElementById('imagePreview').src = e.target.result;
+          document.getElementById('imagePreviewContainer').classList.remove('hidden');
+        }
+        reader.readAsDataURL(file);
+      }
+    }
+
     function openProductModal(prodId = null) {
       const modal = document.getElementById('productModal');
       const title = document.getElementById('modalProductTitle');
+      document.getElementById('productForm').reset();
+      document.getElementById('imagePreviewContainer').classList.add('hidden');
+      document.getElementById('prodImageBase64').value = '';
       
       if(prodId) {
         const prod = products.find(p => p.id === prodId);
@@ -750,12 +763,16 @@
         document.getElementById('prodName').value = prod.name;
         document.getElementById('prodCategory').value = prod.category;
         document.getElementById('prodPrice').value = prod.price;
-        document.getElementById('prodImage').value = prod.image || '';
+        document.getElementById('prodImageBase64').value = prod.image || '';
         document.getElementById('prodDesc').value = prod.desc || '';
         document.getElementById('prodAvailable').checked = prod.available;
+
+        if(prod.image) {
+          document.getElementById('imagePreview').src = prod.image;
+          document.getElementById('imagePreviewContainer').classList.remove('hidden');
+        }
         title.innerText = "Editar Producto";
       } else {
-        document.getElementById('productForm').reset();
         document.getElementById('prodId').value = '';
         document.getElementById('prodAvailable').checked = true;
         title.innerText = "Nuevo Producto";
@@ -775,18 +792,21 @@
       const name = document.getElementById('prodName').value.trim();
       const category = document.getElementById('prodCategory').value;
       const price = parseFloat(document.getElementById('prodPrice').value);
-      const image = document.getElementById('prodImage').value.trim();
       const desc = document.getElementById('prodDesc').value.trim();
       const available = document.getElementById('prodAvailable').checked;
+      
+      let image = document.getElementById('prodImageBase64').value;
+      if(!image && id) {
+        const existingProd = products.find(p => p.id === id);
+        image = existingProd ? existingProd.image : "";
+      }
 
       if(id) {
-        // Actualizar
         const prod = products.find(p => p.id === id);
         if(prod) {
           Object.assign(prod, { name, category, price, image, desc, available });
         }
       } else {
-        // Crear nuevo
         products.push({
           id: "prod-" + Date.now(),
           name, category, price, image, desc, available
