@@ -1,0 +1,812 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Repostería - Pedidos & Catálogo</title>
+  <!-- Tailwind CSS -->
+  <script src="https://cdn.tailwindcss.com"></script>
+  <!-- Lucide Icons -->
+  <script src="https://unpkg.com/lucide@latest"></script>
+  <!-- Google Fonts -->
+  <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+  <style>
+    body { font-family: 'Plus Jakarta Sans', sans-serif; }
+    .custom-scrollbar::-webkit-scrollbar { width: 6px; height: 6px; }
+    .custom-scrollbar::-webkit-scrollbar-track { background: #f1f5f9; }
+    .custom-scrollbar::-webkit-scrollbar-thumb { background: #cbd5e1; border-radius: 4px; }
+  </style>
+</head>
+<body class="bg-pink-50/40 text-slate-800 min-h-screen flex flex-col">
+
+  <!-- CONFIGURACIÓN DE NUMERO DE WHATSAPP -->
+  <script>
+    // CAMBIA ESTE NÚMERO POR EL TUYO (código de país sin '+' seguido del número)
+    const WHATSAPP_NUMBER = "5491112345678"; 
+  </script>
+
+  <!-- NAVBAR -->
+  <header class="bg-white border-b border-pink-100 sticky top-0 z-30 shadow-sm">
+    <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 h-16 flex items-center justify-between">
+      <div class="flex items-center gap-3">
+        <div class="w-10 h-10 rounded-full bg-pink-500 text-white flex items-center justify-center font-bold text-xl shadow-md shadow-pink-200">
+          🎂
+        </div>
+        <div>
+          <h1 class="font-bold text-slate-900 leading-tight text-lg">Dulce Arte</h1>
+          <p class="text-xs text-pink-500 font-medium">Repostería Artesanal</p>
+        </div>
+      </div>
+
+      <!-- BOTONES NAVEGACIÓN -->
+      <div class="flex items-center gap-2">
+        <button id="btnViewCatalog" onclick="switchView('client')" class="px-3 py-1.5 rounded-xl text-sm font-semibold flex items-center gap-2 transition bg-pink-50 text-pink-600 border border-pink-200">
+          <i data-lucide="shopping-bag" class="w-4 h-4"></i>
+          <span>Catálogo</span>
+        </button>
+
+        <button id="btnViewAdmin" onclick="switchView('admin')" class="px-3 py-1.5 rounded-xl text-sm font-semibold text-slate-600 hover:text-slate-900 hover:bg-slate-100 flex items-center gap-2 transition">
+          <i data-lucide="chef-hat" class="w-4 h-4"></i>
+          <span class="hidden sm:inline">Panel Repostera</span>
+        </button>
+
+        <!-- CART BUTTON (CLIENT VISTA) -->
+        <button id="cartToggleBtn" onclick="toggleCartDrawer()" class="relative p-2 bg-pink-500 text-white rounded-xl hover:bg-pink-600 transition shadow-md shadow-pink-200 ml-2">
+          <i data-lucide="shopping-cart" class="w-5 h-5"></i>
+          <span id="cartBadge" class="absolute -top-1.5 -right-1.5 bg-slate-900 text-white text-xs font-bold w-5 h-5 rounded-full flex items-center justify-center border-2 border-white hidden">0</span>
+        </button>
+      </div>
+    </div>
+  </header>
+
+  <main class="flex-1 max-w-7xl w-full mx-auto p-4 sm:p-6 lg:p-8">
+
+    <!-- ==================== VISTA CLIENTE ==================== -->
+    <section id="clientView" class="space-y-6">
+      
+      <!-- HERO BANNER -->
+      <div class="bg-gradient-to-r from-pink-500 to-rose-400 rounded-2xl p-6 sm:p-8 text-white shadow-lg relative overflow-hidden">
+        <div class="max-w-xl z-10 relative">
+          <span class="px-3 py-1 bg-white/20 text-xs font-bold uppercase tracking-wider rounded-full backdrop-blur-sm">Hecho con amor</span>
+          <h2 class="text-2xl sm:text-4xl font-extrabold mt-2 mb-3">Tus momentos especiales merecen el mejor sabor 🧁</h2>
+          <p class="text-pink-100 text-sm sm:text-base">Haz tu pedido con anticipación para garantizarnos de endulzar tu fiesta o reunión.</p>
+        </div>
+      </div>
+
+      <!-- FILTROS Y BÚSQUEDA -->
+      <div class="flex flex-col sm:flex-row gap-3 justify-between items-center bg-white p-4 rounded-2xl border border-pink-100 shadow-sm">
+        <div class="relative w-full sm:w-72">
+          <i data-lucide="search" class="w-4 h-4 absolute left-3 top-1/2 -translate-y-1/2 text-slate-400"></i>
+          <input type="text" id="searchInput" oninput="renderCatalog()" placeholder="Buscar torta, cupcake..." class="w-full pl-9 pr-4 py-2 rounded-xl bg-slate-50 border border-slate-200 text-sm focus:outline-none focus:ring-2 focus:ring-pink-400">
+        </div>
+        <div class="flex gap-2 w-full sm:w-auto overflow-x-auto pb-1 sm:pb-0 custom-scrollbar">
+          <button onclick="setCategoryFilter('all')" class="cat-filter-btn active px-4 py-2 rounded-xl text-xs font-bold transition whitespace-nowrap bg-pink-500 text-white" data-cat="all">Todos</button>
+          <button onclick="setCategoryFilter('Tortas')" class="cat-filter-btn px-4 py-2 rounded-xl text-xs font-bold transition whitespace-nowrap bg-slate-100 text-slate-600 hover:bg-slate-200" data-cat="Tortas">Tortas</button>
+          <button onclick="setCategoryFilter('Cupcakes')" class="cat-filter-btn px-4 py-2 rounded-xl text-xs font-bold transition whitespace-nowrap bg-slate-100 text-slate-600 hover:bg-slate-200" data-cat="Cupcakes">Cupcakes</button>
+          <button onclick="setCategoryFilter('Postres')" class="cat-filter-btn px-4 py-2 rounded-xl text-xs font-bold transition whitespace-nowrap bg-slate-100 text-slate-600 hover:bg-slate-200" data-cat="Postres">Postres</button>
+          <button onclick="setCategoryFilter('Salados')" class="cat-filter-btn px-4 py-2 rounded-xl text-xs font-bold transition whitespace-nowrap bg-slate-100 text-slate-600 hover:bg-slate-200" data-cat="Salados">Salados</button>
+        </div>
+      </div>
+
+      <!-- GRILLA DE PRODUCTOS -->
+      <div id="catalogGrid" class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
+        <!-- Renderizado dinámico -->
+      </div>
+    </section>
+
+    <!-- ==================== VISTA ADMIN (REPOSTERA) ==================== -->
+    <section id="adminView" class="hidden space-y-6">
+      
+      <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-4 bg-white p-4 rounded-2xl border border-pink-100 shadow-sm">
+        <div>
+          <h2 class="text-xl font-bold text-slate-900">Panel de Control de la Repostera</h2>
+          <p class="text-xs text-slate-500">Gestiona tus productos y haz seguimiento a los pedidos de tus clientes.</p>
+        </div>
+        
+        <div class="flex items-center gap-2">
+          <button onclick="openProductModal()" class="px-4 py-2 bg-pink-500 hover:bg-pink-600 text-white rounded-xl text-sm font-semibold flex items-center gap-2 transition shadow-md shadow-pink-200">
+            <i data-lucide="plus" class="w-4 h-4"></i>
+            <span>Nuevo Producto</span>
+          </button>
+        </div>
+      </div>
+
+      <!-- TABS DEL ADMIN -->
+      <div class="flex border-b border-slate-200">
+        <button onclick="switchAdminTab('orders')" id="tabBtnOrders" class="px-4 py-2.5 font-semibold text-sm border-b-2 border-pink-500 text-pink-600 flex items-center gap-2">
+          <i data-lucide="clipboard-list" class="w-4 h-4"></i>
+          <span>Pedidos (<span id="ordersCount">0</span>)</span>
+        </button>
+        <button onclick="switchAdminTab('products')" id="tabBtnProducts" class="px-4 py-2.5 font-semibold text-sm border-b-2 border-transparent text-slate-500 hover:text-slate-800 flex items-center gap-2">
+          <i data-lucide="package" class="w-4 h-4"></i>
+          <span>Gestión de Productos</span>
+        </button>
+      </div>
+
+      <!-- TAB 1: PEDIDOS (KANBAN) -->
+      <div id="adminTabOrders" class="space-y-4">
+        <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
+          
+          <!-- PENDIENTE -->
+          <div class="bg-amber-50/50 border border-amber-200 rounded-2xl p-4 flex flex-col">
+            <div class="flex items-center justify-between mb-3">
+              <h3 class="font-bold text-amber-900 text-sm flex items-center gap-2">
+                <span class="w-2.5 h-2.5 rounded-full bg-amber-500"></span> Pendientes
+              </h3>
+              <span id="badgePending" class="bg-amber-200 text-amber-900 text-xs font-bold px-2 py-0.5 rounded-full">0</span>
+            </div>
+            <div id="colPending" class="space-y-3 flex-1 min-h-[300px]">
+              <!-- Pedidos dinámicos -->
+            </div>
+          </div>
+
+          <!-- EN PREPARACIÓN -->
+          <div class="bg-blue-50/50 border border-blue-200 rounded-2xl p-4 flex flex-col">
+            <div class="flex items-center justify-between mb-3">
+              <h3 class="font-bold text-blue-900 text-sm flex items-center gap-2">
+                <span class="w-2.5 h-2.5 rounded-full bg-blue-500"></span> En Hornada / Preparación
+              </h3>
+              <span id="badgePreparing" class="bg-blue-200 text-blue-900 text-xs font-bold px-2 py-0.5 rounded-full">0</span>
+            </div>
+            <div id="colPreparing" class="space-y-3 flex-1 min-h-[300px]">
+              <!-- Pedidos dinámicos -->
+            </div>
+          </div>
+
+          <!-- LISTO / ENTREGADO -->
+          <div class="bg-emerald-50/50 border border-emerald-200 rounded-2xl p-4 flex flex-col">
+            <div class="flex items-center justify-between mb-3">
+              <h3 class="font-bold text-emerald-900 text-sm flex items-center gap-2">
+                <span class="w-2.5 h-2.5 rounded-full bg-emerald-500"></span> Listos / Entregados
+              </h3>
+              <span id="badgeDone" class="bg-emerald-200 text-emerald-900 text-xs font-bold px-2 py-0.5 rounded-full">0</span>
+            </div>
+            <div id="colDone" class="space-y-3 flex-1 min-h-[300px]">
+              <!-- Pedidos dinámicos -->
+            </div>
+          </div>
+
+        </div>
+      </div>
+
+      <!-- TAB 2: PRODUCTOS -->
+      <div id="adminTabProducts" class="hidden">
+        <div class="bg-white rounded-2xl border border-slate-200 overflow-hidden">
+          <div class="overflow-x-auto">
+            <table class="w-full text-left border-collapse">
+              <thead>
+                <tr class="bg-slate-50 border-b border-slate-200 text-xs text-slate-500 uppercase">
+                  <th class="p-4">Producto</th>
+                  <th class="p-4">Categoría</th>
+                  <th class="p-4">Precio</th>
+                  <th class="p-4">Estado</th>
+                  <th class="p-4 text-right">Acciones</th>
+                </tr>
+              </thead>
+              <tbody id="adminProductsTable" class="divide-y divide-slate-100 text-sm">
+                <!-- Productos dinámicos -->
+              </tbody>
+            </table>
+          </div>
+        </div>
+      </div>
+
+    </section>
+
+  </main>
+
+  <!-- ==================== DRAWER DEL CARRITO ==================== -->
+  <div id="cartDrawer" class="fixed inset-0 z-50 overflow-hidden hidden">
+    <div class="absolute inset-0 bg-slate-900/40 backdrop-blur-sm transition-opacity" onclick="toggleCartDrawer()"></div>
+    <div class="fixed inset-y-0 right-0 max-w-full flex pl-10">
+      <div class="w-screen max-w-md bg-white shadow-xl flex flex-col">
+        
+        <!-- HEADER CARRITO -->
+        <div class="p-4 sm:p-6 bg-pink-500 text-white flex items-center justify-between">
+          <div class="flex items-center gap-2">
+            <i data-lucide="shopping-bag" class="w-5 h-5"></i>
+            <h2 class="font-bold text-lg">Tu Pedido</h2>
+          </div>
+          <button onclick="toggleCartDrawer()" class="p-1 rounded-lg hover:bg-pink-600 text-white">
+            <i data-lucide="x" class="w-5 h-5"></i>
+          </button>
+        </div>
+
+        <!-- ITEMS LIST -->
+        <div id="cartItemsList" class="flex-1 overflow-y-auto p-4 sm:p-6 space-y-4 custom-scrollbar">
+          <!-- Items dinámicos -->
+        </div>
+
+        <!-- FORMULARIO CHECKOUT -->
+        <div id="cartCheckoutForm" class="p-4 sm:p-6 bg-slate-50 border-t border-slate-200 space-y-4">
+          <div class="space-y-3">
+            <div>
+              <label class="block text-xs font-semibold text-slate-700 mb-1">Tu Nombre Completo *</label>
+              <input type="text" id="clientName" placeholder="Ej: María García" class="w-full px-3 py-2 bg-white border border-slate-300 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-pink-400">
+            </div>
+
+            <div class="grid grid-cols-2 gap-2">
+              <div>
+                <label class="block text-xs font-semibold text-slate-700 mb-1">Fecha de Entrega *</label>
+                <input type="date" id="deliveryDate" class="w-full px-3 py-2 bg-white border border-slate-300 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-pink-400">
+              </div>
+              <div>
+                <label class="block text-xs font-semibold text-slate-700 mb-1">Hora Aprox.</label>
+                <input type="time" id="deliveryTime" class="w-full px-3 py-2 bg-white border border-slate-300 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-pink-400">
+              </div>
+            </div>
+
+            <div>
+              <label class="block text-xs font-semibold text-slate-700 mb-1">Detalles o Mensaje Especial</label>
+              <textarea id="orderNotes" rows="2" placeholder="Ej: Poner vela de número 5, alergia a las nueces..." class="w-full px-3 py-2 bg-white border border-slate-300 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-pink-400 resize-none"></textarea>
+            </div>
+          </div>
+
+          <div class="border-t border-slate-200 pt-3 space-y-1">
+            <div class="flex justify-between text-slate-600 text-sm">
+              <span>Subtotal</span>
+              <span id="cartSubtotal">$0</span>
+            </div>
+            <div class="flex justify-between text-slate-900 font-bold text-lg pt-1 border-t border-dashed border-slate-200">
+              <span>Total Estimado</span>
+              <span id="cartTotal" class="text-pink-600">$0</span>
+            </div>
+          </div>
+
+          <button onclick="submitOrder()" class="w-full py-3 bg-emerald-600 hover:bg-emerald-700 text-white font-bold rounded-xl flex items-center justify-center gap-2 shadow-lg shadow-emerald-200 transition">
+            <i data-lucide="message-circle" class="w-5 h-5"></i>
+            <span>Enviar Pedido por WhatsApp</span>
+          </button>
+        </div>
+
+      </div>
+    </div>
+  </div>
+
+  <!-- ==================== MODAL NUEVO / EDITAR PRODUCTO ==================== -->
+  <div id="productModal" class="fixed inset-0 z-50 overflow-y-auto hidden">
+    <div class="min-h-screen px-4 flex items-center justify-center">
+      <div class="fixed inset-0 bg-slate-900/40 backdrop-blur-sm" onclick="closeProductModal()"></div>
+
+      <div class="bg-white rounded-2xl shadow-xl max-w-md w-full p-6 relative z-10 space-y-4">
+        <div class="flex justify-between items-center border-b pb-3">
+          <h3 id="modalProductTitle" class="font-bold text-lg text-slate-900">Agregar Producto</h3>
+          <button onclick="closeProductModal()" class="text-slate-400 hover:text-slate-600">
+            <i data-lucide="x" class="w-5 h-5"></i>
+          </button>
+        </div>
+
+        <form id="productForm" onsubmit="saveProduct(event)" class="space-y-3">
+          <input type="hidden" id="prodId">
+          
+          <div>
+            <label class="block text-xs font-semibold text-slate-700 mb-1">Nombre del Producto *</label>
+            <input type="text" id="prodName" required placeholder="Ej: Torta Lemon Pie" class="w-full px-3 py-2 border border-slate-300 rounded-xl text-sm focus:ring-2 focus:ring-pink-400">
+          </div>
+
+          <div class="grid grid-cols-2 gap-2">
+            <div>
+              <label class="block text-xs font-semibold text-slate-700 mb-1">Categoría *</label>
+              <select id="prodCategory" required class="w-full px-3 py-2 border border-slate-300 rounded-xl text-sm focus:ring-2 focus:ring-pink-400">
+                <option value="Tortas">Tortas</option>
+                <option value="Cupcakes">Cupcakes</option>
+                <option value="Postres">Postres</option>
+                <option value="Salados">Salados</option>
+              </select>
+            </div>
+            <div>
+              <label class="block text-xs font-semibold text-slate-700 mb-1">Precio ($) *</label>
+              <input type="number" id="prodPrice" min="0" required placeholder="5000" class="w-full px-3 py-2 border border-slate-300 rounded-xl text-sm focus:ring-2 focus:ring-pink-400">
+            </div>
+          </div>
+
+          <div>
+            <label class="block text-xs font-semibold text-slate-700 mb-1">URL de la Imagen</label>
+            <input type="url" id="prodImage" placeholder="https://images.unsplash.com/..." class="w-full px-3 py-2 border border-slate-300 rounded-xl text-sm focus:ring-2 focus:ring-pink-400">
+            <span class="text-[10px] text-slate-400">Déjalo vacío para usar una imagen por defecto</span>
+          </div>
+
+          <div>
+            <label class="block text-xs font-semibold text-slate-700 mb-1">Descripción</label>
+            <textarea id="prodDesc" rows="2" placeholder="Relleno de crema pastelera y merengue italiano..." class="w-full px-3 py-2 border border-slate-300 rounded-xl text-sm focus:ring-2 focus:ring-pink-400 resize-none"></textarea>
+          </div>
+
+          <div class="flex items-center gap-2 pt-2">
+            <input type="checkbox" id="prodAvailable" checked class="w-4 h-4 text-pink-500 rounded border-slate-300 focus:ring-pink-400">
+            <label for="prodAvailable" class="text-xs font-semibold text-slate-700">Producto Disponible para Pedidos</label>
+          </div>
+
+          <div class="flex justify-end gap-2 pt-4 border-t">
+            <button type="button" onclick="closeProductModal()" class="px-4 py-2 border border-slate-300 rounded-xl text-sm font-semibold text-slate-600 hover:bg-slate-50">Cancelar</button>
+            <button type="submit" class="px-4 py-2 bg-pink-500 hover:bg-pink-600 text-white rounded-xl text-sm font-semibold shadow-md shadow-pink-200">Guardar</button>
+          </div>
+        </form>
+      </div>
+    </div>
+  </div>
+
+  <!-- JAVASCRIPT LOGIC -->
+  <script>
+    // DATOS INICIALES POR DEFECTO
+    const DEFAULT_PRODUCTS = [
+      {
+        id: "p1",
+        name: "Torta Red Velvet",
+        category: "Tortas",
+        price: 18000,
+        desc: "Bizcochuelo aterciopelado de cacao suave con relleno y cobertura de frosting de queso crema.",
+        image: "https://images.unsplash.com/photo-1586985289688-ca3cf47d3e6e?auto=format&fit=crop&w=600&q=80",
+        available: true
+      },
+      {
+        id: "p2",
+        name: "Cupcakes de Chocolate (6 Unid.)",
+        category: "Cupcakes",
+        price: 8500,
+        desc: "Muffins esponjosos de puro chocolate belga coronados con ganache y chips.",
+        image: "https://images.unsplash.com/photo-1576618148400-f54bed99fcfd?auto=format&fit=crop&w=600&q=80",
+        available: true
+      },
+      {
+        id: "p3",
+        name: "Tarta Chocotorta",
+        category: "Postres",
+        price: 14500,
+        desc: "El clásico argentino: galletitas chocolinas embebidas en café con crema de dulce de leche y queso.",
+        image: "https://images.unsplash.com/photo-1535141192574-5d4897c13136?auto=format&fit=crop&w=600&q=80",
+        available: true
+      }
+    ];
+
+    // ESTADO DE LA APLICACIÓN
+    let products = JSON.parse(localStorage.getItem('repo_products')) || DEFAULT_PRODUCTS;
+    let orders = JSON.parse(localStorage.getItem('repo_orders')) || [];
+    let cart = [];
+    let currentCategory = 'all';
+
+    // GUARDAR EN LOCALSTORAGE
+    function saveToStorage() {
+      localStorage.setItem('repo_products', JSON.stringify(products));
+      localStorage.setItem('repo_orders', JSON.stringify(orders));
+    }
+
+    // INICIALIZACIÓN
+    document.addEventListener('DOMContentLoaded', () => {
+      lucide.createIcons();
+      renderCatalog();
+      renderAdminProducts();
+      renderAdminOrders();
+      updateCartUI();
+      
+      // Fecha por defecto en checkout (mañana)
+      const tomorrow = new Date();
+      tomorrow.setDate(tomorrow.getDate() + 1);
+      document.getElementById('deliveryDate').value = tomorrow.toISOString().split('T')[0];
+    });
+
+    // CAMBIAR ENTRE VISTAS (CLIENTE / ADMIN)
+    function switchView(view) {
+      const clientView = document.getElementById('clientView');
+      const adminView = document.getElementById('adminView');
+      const btnClient = document.getElementById('btnViewCatalog');
+      const btnAdmin = document.getElementById('btnViewAdmin');
+
+      if(view === 'client') {
+        clientView.classList.remove('hidden');
+        adminView.classList.add('hidden');
+        btnClient.className = "px-3 py-1.5 rounded-xl text-sm font-semibold flex items-center gap-2 transition bg-pink-50 text-pink-600 border border-pink-200";
+        btnAdmin.className = "px-3 py-1.5 rounded-xl text-sm font-semibold text-slate-600 hover:text-slate-900 hover:bg-slate-100 flex items-center gap-2 transition";
+      } else {
+        clientView.classList.add('hidden');
+        adminView.classList.remove('hidden');
+        btnAdmin.className = "px-3 py-1.5 rounded-xl text-sm font-semibold flex items-center gap-2 transition bg-pink-50 text-pink-600 border border-pink-200";
+        btnClient.className = "px-3 py-1.5 rounded-xl text-sm font-semibold text-slate-600 hover:text-slate-900 hover:bg-slate-100 flex items-center gap-2 transition";
+      }
+    }
+
+    // ==================== CATÁLOGO (CLIENTE) ====================
+    function setCategoryFilter(cat) {
+      currentCategory = cat;
+      document.querySelectorAll('.cat-filter-btn').forEach(btn => {
+        if(btn.dataset.cat === cat) {
+          btn.className = "cat-filter-btn active px-4 py-2 rounded-xl text-xs font-bold transition whitespace-nowrap bg-pink-500 text-white";
+        } else {
+          btn.className = "cat-filter-btn px-4 py-2 rounded-xl text-xs font-bold transition whitespace-nowrap bg-slate-100 text-slate-600 hover:bg-slate-200";
+        }
+      });
+      renderCatalog();
+    }
+
+    function renderCatalog() {
+      const grid = document.getElementById('catalogGrid');
+      const search = document.getElementById('searchInput').value.toLowerCase();
+
+      const filtered = products.filter(p => {
+        const matchesCat = currentCategory === 'all' || p.category === currentCategory;
+        const matchesSearch = p.name.toLowerCase().includes(search) || p.desc.toLowerCase().includes(search);
+        return matchesCat && matchesSearch;
+      });
+
+      if(filtered.length === 0) {
+        grid.innerHTML = `
+          <div class="col-span-full text-center py-12 text-slate-400">
+            <i data-lucide="cookie" class="w-12 h-12 mx-auto mb-2 opacity-50"></i>
+            <p>No encontramos delicias en esta sección.</p>
+          </div>
+        `;
+        lucide.createIcons();
+        return;
+      }
+
+      grid.innerHTML = filtered.map(p => `
+        <div class="bg-white rounded-2xl border border-pink-100 overflow-hidden shadow-sm hover:shadow-md transition flex flex-col">
+          <div class="h-48 bg-slate-100 relative overflow-hidden">
+            <img src="${p.image || 'https://images.unsplash.com/photo-1578985545062-69928b1d9587?auto=format&fit=crop&w=600&q=80'}" alt="${p.name}" class="w-full h-full object-cover">
+            <span class="absolute top-3 left-3 bg-white/90 backdrop-blur-sm px-2.5 py-1 rounded-lg text-[10px] font-bold text-slate-700 uppercase tracking-wider">${p.category}</span>
+            ${!p.available ? '<div class="absolute inset-0 bg-slate-900/60 flex items-center justify-center text-white font-bold text-sm uppercase">Agotado</div>' : ''}
+          </div>
+          <div class="p-4 flex-1 flex flex-col justify-between space-y-3">
+            <div>
+              <h3 class="font-bold text-slate-900 text-base leading-snug">${p.name}</h3>
+              <p class="text-slate-500 text-xs mt-1 line-clamp-2">${p.desc}</p>
+            </div>
+            <div class="flex items-center justify-between pt-2 border-t border-slate-50">
+              <span class="text-lg font-extrabold text-pink-600">$${p.price.toLocaleString()}</span>
+              <button onclick="addToCart('${p.id}')" ${!p.available ? 'disabled' : ''} class="px-3 py-2 bg-pink-500 hover:bg-pink-600 disabled:bg-slate-300 text-white text-xs font-bold rounded-xl flex items-center gap-1.5 transition">
+                <i data-lucide="plus" class="w-4 h-4"></i>
+                <span>Agregar</span>
+              </button>
+            </div>
+          </div>
+        </div>
+      `).join('');
+
+      lucide.createIcons();
+    }
+
+    // ==================== CARRITO ====================
+    function toggleCartDrawer() {
+      const drawer = document.getElementById('cartDrawer');
+      drawer.classList.toggle('hidden');
+    }
+
+    function addToCart(prodId) {
+      const prod = products.find(p => p.id === prodId);
+      if(!prod) return;
+
+      const existing = cart.find(item => item.id === prodId);
+      if(existing) {
+        existing.qty += 1;
+      } else {
+        cart.push({ ...prod, qty: 1 });
+      }
+
+      updateCartUI();
+      // Abrir drawer suavemente al agregar
+      document.getElementById('cartDrawer').classList.remove('hidden');
+    }
+
+    function updateCartQty(prodId, delta) {
+      const item = cart.find(i => i.id === prodId);
+      if(!item) return;
+
+      item.qty += delta;
+      if(item.qty <= 0) {
+        cart = cart.filter(i => i.id !== prodId);
+      }
+      updateCartUI();
+    }
+
+    function updateCartUI() {
+      const cartBadge = document.getElementById('cartBadge');
+      const itemsList = document.getElementById('cartItemsList');
+      const subtotalEl = document.getElementById('cartSubtotal');
+      const totalEl = document.getElementById('cartTotal');
+
+      const totalItems = cart.reduce((acc, item) => acc + item.qty, 0);
+      const subtotal = cart.reduce((acc, item) => acc + (item.price * item.qty), 0);
+
+      if(totalItems > 0) {
+        cartBadge.innerText = totalItems;
+        cartBadge.classList.remove('hidden');
+      } else {
+        cartBadge.classList.add('hidden');
+      }
+
+      if(cart.length === 0) {
+        itemsList.innerHTML = `
+          <div class="text-center py-12 text-slate-400 space-y-2">
+            <i data-lucide="shopping-bag" class="w-12 h-12 mx-auto opacity-40"></i>
+            <p class="text-sm font-medium">Tu carrito está vacío</p>
+          </div>
+        `;
+      } else {
+        itemsList.innerHTML = cart.map(item => `
+          <div class="flex items-center justify-between gap-3 p-3 bg-slate-50 rounded-xl border border-slate-100">
+            <div class="flex items-center gap-3">
+              <img src="${item.image || 'https://images.unsplash.com/photo-1578985545062-69928b1d9587?auto=format&fit=crop&w=600&q=80'}" class="w-12 h-12 rounded-lg object-cover">
+              <div>
+                <h4 class="font-bold text-slate-800 text-xs">${item.name}</h4>
+                <span class="text-pink-600 font-bold text-xs">$${(item.price * item.qty).toLocaleString()}</span>
+              </div>
+            </div>
+            <div class="flex items-center gap-2 bg-white px-2 py-1 rounded-lg border border-slate-200">
+              <button onclick="updateCartQty('${item.id}', -1)" class="text-slate-500 hover:text-slate-800 font-bold text-xs">-</button>
+              <span class="text-xs font-bold text-slate-700 w-4 text-center">${item.qty}</span>
+              <button onclick="updateCartQty('${item.id}', 1)" class="text-slate-500 hover:text-slate-800 font-bold text-xs">+</button>
+            </div>
+          </div>
+        `).join('');
+      }
+
+      subtotalEl.innerText = `$${subtotal.toLocaleString()}`;
+      totalEl.innerText = `$${subtotal.toLocaleString()}`;
+
+      lucide.createIcons();
+    }
+
+    // ENVIAR PEDIDO POR WHATSAPP Y REGISTRAR
+    function submitOrder() {
+      if(cart.length === 0) {
+        alert("Tu carrito está vacío.");
+        return;
+      }
+
+      const clientName = document.getElementById('clientName').value.trim();
+      const deliveryDate = document.getElementById('deliveryDate').value;
+      const deliveryTime = document.getElementById('deliveryTime').value;
+      const notes = document.getElementById('orderNotes').value.trim();
+
+      if(!clientName || !deliveryDate) {
+        alert("Por favor completa tu nombre y fecha de entrega.");
+        return;
+      }
+
+      const total = cart.reduce((acc, item) => acc + (item.price * item.qty), 0);
+
+      // Crear objeto pedido para guardar localmente
+      const newOrder = {
+        id: "ORD-" + Date.now().toString().slice(-5),
+        clientName,
+        deliveryDate,
+        deliveryTime,
+        notes,
+        items: [...cart],
+        total,
+        status: "pending", // pending, preparing, done
+        createdAt: new Date().toISOString()
+      };
+
+      orders.unshift(newOrder);
+      saveToStorage();
+      renderAdminOrders();
+
+      // Formatear texto para WhatsApp
+      let msg = `*¡Hola Dulce Arte! Quiero realizar un pedido:* 🎂\n\n`;
+      msg += `👤 *Cliente:* ${clientName}\n`;
+      msg += `📅 *Fecha Entrega:* ${deliveryDate} ${deliveryTime ? 'a las ' + deliveryTime : ''}\n`;
+      if(notes) msg += `📝 *Notas:* ${notes}\n`;
+      msg += `\n*Detalle del Pedido:*\n`;
+
+      cart.forEach(item => {
+        msg += `• ${item.qty}x ${item.name} ($${(item.price * item.qty).toLocaleString()})\n`;
+      });
+
+      msg += `\n💰 *Total Estimado:* $${total.toLocaleString()}\n\n`;
+      msg += `Quedo a la espera de la confirmación. ¡Muchas gracias!`;
+
+      // Limpiar carrito
+      cart = [];
+      updateCartUI();
+      toggleCartDrawer();
+
+      // Redirigir a WhatsApp
+      const url = `https://wa.me/${WHATSAPP_NUMBER}?text=${encodeURIComponent(msg)}`;
+      window.open(url, '_blank');
+    }
+
+    // ==================== PANEL DE LA REPOSTERA (ADMIN) ====================
+    function switchAdminTab(tab) {
+      const tabOrders = document.getElementById('adminTabOrders');
+      const tabProducts = document.getElementById('adminTabProducts');
+      const btnOrders = document.getElementById('tabBtnOrders');
+      const btnProducts = document.getElementById('tabBtnProducts');
+
+      if(tab === 'orders') {
+        tabOrders.classList.remove('hidden');
+        tabProducts.classList.add('hidden');
+        btnOrders.className = "px-4 py-2.5 font-semibold text-sm border-b-2 border-pink-500 text-pink-600 flex items-center gap-2";
+        btnProducts.className = "px-4 py-2.5 font-semibold text-sm border-b-2 border-transparent text-slate-500 hover:text-slate-800 flex items-center gap-2";
+      } else {
+        tabOrders.classList.add('hidden');
+        tabProducts.classList.remove('hidden');
+        btnProducts.className = "px-4 py-2.5 font-semibold text-sm border-b-2 border-pink-500 text-pink-600 flex items-center gap-2";
+        btnOrders.className = "px-4 py-2.5 font-semibold text-sm border-b-2 border-transparent text-slate-500 hover:text-slate-800 flex items-center gap-2";
+      }
+    }
+
+    // RENDEREAR TABLERO KANBAN DE PEDIDOS
+    function renderAdminOrders() {
+      const colPending = document.getElementById('colPending');
+      const colPreparing = document.getElementById('colPreparing');
+      const colDone = document.getElementById('colDone');
+
+      document.getElementById('ordersCount').innerText = orders.length;
+
+      const pending = orders.filter(o => o.status === 'pending');
+      const preparing = orders.filter(o => o.status === 'preparing');
+      const done = orders.filter(o => o.status === 'done');
+
+      document.getElementById('badgePending').innerText = pending.length;
+      document.getElementById('badgePreparing').innerText = preparing.length;
+      document.getElementById('badgeDone').innerText = done.length;
+
+      colPending.innerHTML = pending.map(o => renderOrderCard(o)).join('') || '<p class="text-xs text-slate-400 italic text-center py-4">Sin pedidos pendientes</p>';
+      colPreparing.innerHTML = preparing.map(o => renderOrderCard(o)).join('') || '<p class="text-xs text-slate-400 italic text-center py-4">Nada en preparación</p>';
+      colDone.innerHTML = done.map(o => renderOrderCard(o)).join('') || '<p class="text-xs text-slate-400 italic text-center py-4">Sin entregas completadas</p>';
+
+      lucide.createIcons();
+    }
+
+    function renderOrderCard(order) {
+      return `
+        <div class="bg-white p-4 rounded-xl border border-slate-200 shadow-sm space-y-3">
+          <div class="flex items-start justify-between">
+            <div>
+              <span class="text-[10px] font-bold text-slate-400 uppercase">${order.id}</span>
+              <h4 class="font-bold text-slate-900 text-sm">${order.clientName}</h4>
+            </div>
+            <span class="text-xs font-extrabold text-pink-600">$${order.total.toLocaleString()}</span>
+          </div>
+
+          <div class="text-xs text-slate-600 space-y-1 bg-slate-50 p-2.5 rounded-lg">
+            <div class="flex items-center gap-1 font-medium text-pink-600">
+              <i data-lucide="calendar" class="w-3.5 h-3.5"></i>
+              <span>Entrega: ${order.deliveryDate} ${order.deliveryTime || ''}</span>
+            </div>
+            <div class="pt-1 border-t border-slate-200/60">
+              ${order.items.map(i => `<div class="text-[11px]">• ${i.qty}x${i.name}</div>`).join('')}
+            </div>
+            ${order.notes ? `<p class="text-[10px] text-slate-500 italic pt-1">"${order.notes}"</p>` : ''}
+          </div>
+
+          <!-- BOTONES DE CAMBIO DE ESTADO -->
+          <div class="flex gap-1 pt-1 justify-end">
+            ${order.status === 'pending' ? `
+              <button onclick="updateOrderStatus('${order.id}', 'preparing')" class="px-2.5 py-1 bg-blue-500 hover:bg-blue-600 text-white rounded-lg text-xs font-bold transition flex items-center gap-1">
+                <span>Preparar</span>
+                <i data-lucide="arrow-right" class="w-3 h-3"></i>
+              </button>
+            ` : ''}
+
+            ${order.status === 'preparing' ? `
+              <button onclick="updateOrderStatus('${order.id}', 'done')" class="px-2.5 py-1 bg-emerald-500 hover:bg-emerald-600 text-white rounded-lg text-xs font-bold transition flex items-center gap-1">
+                <span>Finalizar</span>
+                <i data-lucide="check" class="w-3 h-3"></i>
+              </button>
+            ` : ''}
+
+            <button onclick="deleteOrder('${order.id}')" class="p-1 text-slate-400 hover:text-rose-500 rounded-lg">
+              <i data-lucide="trash-2" class="w-3.5 h-3.5"></i>
+            </button>
+          </div>
+        </div>
+      `;
+    }
+
+    function updateOrderStatus(orderId, newStatus) {
+      const order = orders.find(o => o.id === orderId);
+      if(order) {
+        order.status = newStatus;
+        saveToStorage();
+        renderAdminOrders();
+      }
+    }
+
+    function deleteOrder(orderId) {
+      if(confirm("¿Eliminar este registro de pedido?")) {
+        orders = orders.filter(o => o.id !== orderId);
+        saveToStorage();
+        renderAdminOrders();
+      }
+    }
+
+    // RENDEREAR TABLA DE PRODUCTOS
+    function renderAdminProducts() {
+      const tbody = document.getElementById('adminProductsTable');
+      tbody.innerHTML = products.map(p => `
+        <tr class="hover:bg-slate-50/80 transition">
+          <td class="p-4 flex items-center gap-3">
+            <img src="${p.image || 'https://images.unsplash.com/photo-1578985545062-69928b1d9587?auto=format&fit=crop&w=600&q=80'}" class="w-10 h-10 rounded-lg object-cover">
+            <div>
+              <div class="font-bold text-slate-900">${p.name}</div>
+              <div class="text-xs text-slate-400 truncate max-w-xs">${p.desc}</div>
+            </div>
+          </td>
+          <td class="p-4 font-medium text-slate-600">${p.category}</td>
+          <td class="p-4 font-extrabold text-pink-600">$${p.price.toLocaleString()}</td>
+          <td class="p-4">
+            <span class="px-2 py-1 text-[10px] font-bold rounded-full ${p.available ? 'bg-emerald-100 text-emerald-700' : 'bg-rose-100 text-rose-700'}">
+              ${p.available ? 'Disponible' : 'Agotado'}
+            </span>
+          </td>
+          <td class="p-4 text-right space-x-2">
+            <button onclick="openProductModal('${p.id}')" class="text-slate-500 hover:text-slate-800 font-semibold text-xs">Editar</button>
+            <button onclick="deleteProduct('${p.id}')" class="text-rose-500 hover:text-rose-700 font-semibold text-xs">Eliminar</button>
+          </td>
+        </tr>
+      `).join('');
+    }
+
+    // MODAL DE PRODUCTO
+    function openProductModal(prodId = null) {
+      const modal = document.getElementById('productModal');
+      const title = document.getElementById('modalProductTitle');
+      
+      if(prodId) {
+        const prod = products.find(p => p.id === prodId);
+        if(!prod) return;
+        document.getElementById('prodId').value = prod.id;
+        document.getElementById('prodName').value = prod.name;
+        document.getElementById('prodCategory').value = prod.category;
+        document.getElementById('prodPrice').value = prod.price;
+        document.getElementById('prodImage').value = prod.image || '';
+        document.getElementById('prodDesc').value = prod.desc || '';
+        document.getElementById('prodAvailable').checked = prod.available;
+        title.innerText = "Editar Producto";
+      } else {
+        document.getElementById('productForm').reset();
+        document.getElementById('prodId').value = '';
+        document.getElementById('prodAvailable').checked = true;
+        title.innerText = "Nuevo Producto";
+      }
+
+      modal.classList.remove('hidden');
+    }
+
+    function closeProductModal() {
+      document.getElementById('productModal').classList.add('hidden');
+    }
+
+    function saveProduct(e) {
+      e.preventDefault();
+      
+      const id = document.getElementById('prodId').value;
+      const name = document.getElementById('prodName').value.trim();
+      const category = document.getElementById('prodCategory').value;
+      const price = parseFloat(document.getElementById('prodPrice').value);
+      const image = document.getElementById('prodImage').value.trim();
+      const desc = document.getElementById('prodDesc').value.trim();
+      const available = document.getElementById('prodAvailable').checked;
+
+      if(id) {
+        // Actualizar
+        const prod = products.find(p => p.id === id);
+        if(prod) {
+          Object.assign(prod, { name, category, price, image, desc, available });
+        }
+      } else {
+        // Crear nuevo
+        products.push({
+          id: "prod-" + Date.now(),
+          name, category, price, image, desc, available
+        });
+      }
+
+      saveToStorage();
+      renderCatalog();
+      renderAdminProducts();
+      closeProductModal();
+    }
+
+    function deleteProduct(prodId) {
+      if(confirm("¿Seguro que deseas eliminar este producto?")) {
+        products = products.filter(p => p.id !== prodId);
+        saveToStorage();
+        renderCatalog();
+        renderAdminProducts();
+      }
+    }
+  </script>
+</body>
+</html>
