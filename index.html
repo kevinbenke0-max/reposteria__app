@@ -21,7 +21,6 @@
 
   <!-- CONFIGURACIÓN DE NUMERO DE WHATSAPP -->
   <script>
-    // Tu número de WhatsApp configurado correctamente
     const WHATSAPP_NUMBER = "5493755449964"; 
   </script>
 
@@ -281,7 +280,7 @@
               </select>
             </div>
             <div>
-              <label class="block text-xs font-semibold text-slate-700 mb-1">Precio ($) *</label>
+              <label class="block text-xs font-semibold text-slate-700 mb-1">Precio ($) x kg *</label>
               <input type="number" id="prodPrice" min="0" required placeholder="5000" class="w-full px-3 py-2 border border-slate-300 rounded-xl text-sm focus:ring-2 focus:ring-pink-400">
             </div>
           </div>
@@ -368,7 +367,6 @@
       renderAdminOrders();
       updateCartUI();
       
-      // Fecha por defecto en checkout (mañana)
       const tomorrow = new Date();
       tomorrow.setDate(tomorrow.getDate() + 1);
       document.getElementById('deliveryDate').value = tomorrow.toISOString().split('T')[0];
@@ -441,7 +439,10 @@
               <p class="text-slate-500 text-xs mt-1 line-clamp-2">${p.desc}</p>
             </div>
             <div class="flex items-center justify-between pt-2 border-t border-slate-50">
-              <span class="text-lg font-extrabold text-pink-600">$${p.price.toLocaleString()}</span>
+              <div>
+                <span class="text-lg font-extrabold text-pink-600">$${p.price.toLocaleString()}</span>
+                <span class="text-[10px] text-slate-400 font-semibold block">x kg</span>
+              </div>
               <button onclick="addToCart('${p.id}')" ${!p.available ? 'disabled' : ''} class="px-3 py-2 bg-pink-500 hover:bg-pink-600 disabled:bg-slate-300 text-white text-xs font-bold rounded-xl flex items-center gap-1.5 transition">
                 <i data-lucide="plus" class="w-4 h-4"></i>
                 <span>Agregar</span>
@@ -516,7 +517,7 @@
               <img src="${item.image || 'https://images.unsplash.com/photo-1578985545062-69928b1d9587?auto=format&fit=crop&w=600&q=80'}" class="w-12 h-12 rounded-lg object-cover">
               <div>
                 <h4 class="font-bold text-slate-800 text-xs">${item.name}</h4>
-                <span class="text-pink-600 font-bold text-xs">$${(item.price * item.qty).toLocaleString()}</span>
+                <span class="text-pink-600 font-bold text-xs">$${(item.price * item.qty).toLocaleString()} <span class="text-[10px] text-slate-400">x kg</span></span>
               </div>
             </div>
             <div class="flex items-center gap-2 bg-white px-2 py-1 rounded-lg border border-slate-200">
@@ -576,7 +577,7 @@
       msg += `\n*Detalle del Pedido:*\n`;
 
       cart.forEach(item => {
-        msg += `• ${item.qty}x ${item.name} ($${(item.price * item.qty).toLocaleString()})\n`;
+        msg += `• ${item.qty}x ${item.name} ($${(item.price * item.qty).toLocaleString()} x kg)\n`;
       });
 
       msg += `\n💰 *Total Estimado:* $${total.toLocaleString()}\n\n`;
@@ -704,7 +705,7 @@
             <div class="flex-1 min-w-0">
               <span class="text-[10px] font-bold px-2 py-0.5 bg-pink-50 text-pink-600 rounded-md">${p.category}</span>
               <h4 class="font-bold text-slate-900 text-sm truncate mt-0.5">${p.name}</h4>
-              <p class="text-xs font-extrabold text-pink-600">$${p.price.toLocaleString()}</p>
+              <p class="text-xs font-extrabold text-pink-600">$${p.price.toLocaleString()} <span class="text-[10px] text-slate-400 font-normal">x kg</span></p>
             </div>
           </div>
           <div class="flex items-center justify-between pt-2 border-t border-slate-100">
