@@ -4,6 +4,11 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Delicias Caseras - Pedidos & Catálogo</title>
+  
+  <!-- MANIFEST PARA INSTALACIÓN PWA -->
+  <link rel="manifest" href="manifest.json">
+  <meta name="theme-color" content="#ec4899">
+
   <!-- Tailwind CSS -->
   <script src="https://cdn.tailwindcss.com"></script>
   <!-- Lucide Icons -->
@@ -22,7 +27,7 @@
   <!-- CONFIGURACIÓN DE NUMERO DE WHATSAPP Y CLAVE DE ACCESO -->
   <script>
     const WHATSAPP_NUMBER = "5493755652469"; 
-    const ADMIN_PIN = "1234"; // <--- PUEDES CAMBIAR ESTA CONTRASEÑA AQUÍ
+    const ADMIN_PIN = "1234"; // <--- CONTRASEÑA DEL PANEL DE LA REPOSTERA
   </script>
 
   <!-- NAVBAR -->
@@ -862,7 +867,7 @@
     function saveProduct(e) {
       e.preventDefault();
       
-      const id = document.getElementById('prodId').value;
+      let id = document.getElementById('prodId').value;
       const name = document.getElementById('prodName').value.trim();
       const category = document.getElementById('prodCategory').value;
       const price = parseFloat(document.getElementById('prodPrice').value);
