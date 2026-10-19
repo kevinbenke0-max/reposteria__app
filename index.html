@@ -80,14 +80,12 @@
       <div class="flex flex-col sm:flex-row gap-3 justify-between items-center bg-white p-4 rounded-2xl border border-pink-100 shadow-sm">
         <div class="relative w-full sm:w-72">
           <i data-lucide="search" class="w-4 h-4 absolute left-3 top-1/2 -translate-y-1/2 text-slate-400"></i>
-          <input type="text" id="searchInput" oninput="renderCatalog()" placeholder="Buscar torta, cupcake, alfajor..." class="w-full pl-9 pr-4 py-2 rounded-xl bg-slate-50 border border-slate-200 text-sm focus:outline-none focus:ring-2 focus:ring-pink-400">
+          <input type="text" id="searchInput" oninput="renderCatalog()" placeholder="Buscar producto..." class="w-full pl-9 pr-4 py-2 rounded-xl bg-slate-50 border border-slate-200 text-sm focus:outline-none focus:ring-2 focus:ring-pink-400">
         </div>
         <div class="flex gap-2 w-full sm:w-auto overflow-x-auto pb-1 sm:pb-0 custom-scrollbar">
           <button onclick="setCategoryFilter('all')" class="cat-filter-btn active px-4 py-2 rounded-xl text-xs font-bold transition whitespace-nowrap bg-pink-500 text-white" data-cat="all">Todos</button>
-          <button onclick="setCategoryFilter('Tortas')" class="cat-filter-btn px-4 py-2 rounded-xl text-xs font-bold transition whitespace-nowrap bg-slate-100 text-slate-600 hover:bg-slate-200" data-cat="Tortas">Tortas</button>
-          <button onclick="setCategoryFilter('Cupcakes')" class="cat-filter-btn px-4 py-2 rounded-xl text-xs font-bold transition whitespace-nowrap bg-slate-100 text-slate-600 hover:bg-slate-200" data-cat="Cupcakes">Cupcakes</button>
-          <button onclick="setCategoryFilter('Postres')" class="cat-filter-btn px-4 py-2 rounded-xl text-xs font-bold transition whitespace-nowrap bg-slate-100 text-slate-600 hover:bg-slate-200" data-cat="Postres">Postres</button>
-          <button onclick="setCategoryFilter('Salados')" class="cat-filter-btn px-4 py-2 rounded-xl text-xs font-bold transition whitespace-nowrap bg-slate-100 text-slate-600 hover:bg-slate-200" data-cat="Salados">Salados</button>
+          <button onclick="setCategoryFilter('Panadería')" class="cat-filter-btn px-4 py-2 rounded-xl text-xs font-bold transition whitespace-nowrap bg-slate-100 text-slate-600 hover:bg-slate-200" data-cat="Panadería">Panadería</button>
+          <button onclick="setCategoryFilter('Reposteria')" class="cat-filter-btn px-4 py-2 rounded-xl text-xs font-bold transition whitespace-nowrap bg-slate-100 text-slate-600 hover:bg-slate-200" data-cat="Reposteria">Reposteria</button>
         </div>
       </div>
 
@@ -266,10 +264,8 @@
             <div>
               <label class="block text-xs font-semibold text-slate-700 mb-1">Categoría</label>
               <select id="prodCategory" class="w-full px-2 py-2 border border-slate-300 rounded-xl text-sm">
-                <option value="Tortas">Tortas</option>
-                <option value="Cupcakes">Cupcakes</option>
-                <option value="Postres">Postres</option>
-                <option value="Salados">Salados</option>
+                <option value="Panadería">Panadería</option>
+                <option value="Reposteria">Reposteria</option>
               </select>
             </div>
             <div>
@@ -666,7 +662,7 @@
           const img = new Image();
           img.onload = () => {
             const canvas = document.createElement('canvas');
-            const maxDim = 400; // Redimensionar imagen para evitar sobrecargar Firestore
+            const maxDim = 400; 
             let w = img.width, h = img.height;
             if (w > h) { if (w > maxDim) { h *= maxDim / w; w = maxDim; } }
             else { if (h > maxDim) { w *= maxDim / h; h = maxDim; } }
