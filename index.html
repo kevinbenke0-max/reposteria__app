@@ -302,7 +302,7 @@
           </div>
           <div class="flex justify-end gap-2 pt-4 border-t">
             <button type="button" onclick="closeProductModal()" class="px-4 py-2 border rounded-xl text-sm">Cancelar</button>
-            <button type="submit" class="px-4 py-2 bg-pink-500 text-white rounded-xl text-sm font-semibold">Guardar</button>
+            <button type="submit" id="btnSaveProd" class="px-4 py-2 bg-pink-500 text-white rounded-xl text-sm font-semibold">Guardar</button>
           </div>
         </form>
       </div>
@@ -332,12 +332,6 @@
     let currentCategory = 'all';
     let isAdminAuthenticated = sessionStorage.getItem('admin_authenticated') === 'true';
 
-    // DATOS INICIALES POR DEFECTO SI ESTÁ VACÍO
-    const DEFAULT_PRODUCTS = [
-      { id: "p1", name: "Torta Red Velvet", category: "Tortas", price: 18000, unitType: "kg", desc: "Bizcochuelo aterciopelado de cacao suave con frosting.", image: "https://images.unsplash.com/photo-1586985289688-ca3cf47d3e6e?auto=format&fit=crop&w=600&q=80", available: true },
-      { id: "p2", name: "Cupcakes Chocolate (6u)", category: "Cupcakes", price: 8500, unitType: "un", desc: "Muffins esponjosos con ganache.", image: "https://images.unsplash.com/photo-1576618148400-f54bed99fcfd?auto=format&fit=crop&w=600&q=80", available: true }
-    ];
-
     document.addEventListener('DOMContentLoaded', () => {
       lucide.createIcons();
       initFirebaseListeners();
@@ -355,10 +349,6 @@
         snapshot.forEach((doc) => {
           products.push({ id: doc.id, ...doc.data() });
         });
-        if(products.length === 0) {
-          // Si no hay productos, cargamos los por defecto a Firestore
-          DEFAULT_PRODUCTS.forEach(p => setDoc(doc(db, "products", p.id), p));
-        }
         renderCatalog();
         renderAdminProducts();
       });
@@ -442,12 +432,12 @@
 
       const filtered = products.filter(p => {
         const matchesCat = currentCategory === 'all' || p.category === currentCategory;
-        const matchesSearch = p.name.toLowerCase().includes(search) || p.desc.toLowerCase().includes(search);
+        const matchesSearch = p.name.toLowerCase().includes(search) || (p.desc && p.desc.toLowerCase().includes(search));
         return matchesCat && matchesSearch;
       });
 
       if(filtered.length === 0) {
-        grid.innerHTML = `<div class="col-span-full text-center py-12 text-slate-400"><p>No encontramos delicias.</p></div>`;
+        grid.innerHTML = `<div class="col-span-full text-center py-12 text-slate-400"><p>No hay delicias cargadas en este momento.</p></div>`;
         lucide.createIcons();
         return;
       }
@@ -455,14 +445,14 @@
       grid.innerHTML = filtered.map(p => `
         <div class="bg-white rounded-2xl border border-pink-100 overflow-hidden shadow-sm hover:shadow-md transition flex flex-col">
           <div class="h-48 bg-slate-100 relative overflow-hidden">
-            <img src="${p.image}" class="w-full h-full object-cover">
+            <img src="${p.image || 'https://images.unsplash.com/photo-1578985545062-69928b1d9587?auto=format&fit=crop&w=600&q=80'}" class="w-full h-full object-cover">
             <span class="absolute top-3 left-3 bg-white/90 px-2.5 py-1 rounded-lg text-[10px] font-bold text-slate-700 uppercase">${p.category}</span>
             ${!p.available ? '<div class="absolute inset-0 bg-slate-900/60 flex items-center justify-center text-white font-bold text-sm uppercase">Agotado</div>' : ''}
           </div>
           <div class="p-4 flex-1 flex flex-col justify-between space-y-3">
             <div>
               <h3 class="font-bold text-slate-900 text-base">${p.name}</h3>
-              <p class="text-slate-500 text-xs mt-1 line-clamp-2">${p.desc}</p>
+              <p class="text-slate-500 text-xs mt-1 line-clamp-2">${p.desc || ''}</p>
             </div>
             <div class="flex items-center justify-between pt-2 border-t border-slate-50">
               <div>
@@ -516,7 +506,7 @@
         itemsList.innerHTML = cart.map(item => `
           <div class="flex items-center justify-between gap-3 p-3 bg-slate-50 rounded-xl border border-slate-100">
             <div class="flex items-center gap-3">
-              <img src="${item.image}" class="w-12 h-12 rounded-lg object-cover">
+              <img src="${item.image || 'https://images.unsplash.com/photo-1578985545062-69928b1d9587?auto=format&fit=crop&w=600&q=80'}" class="w-12 h-12 rounded-lg object-cover">
               <div>
                 <h4 class="font-bold text-slate-800 text-xs">${item.name}</h4>
                 <span class="text-pink-600 font-bold text-xs">$${(item.price * item.qty).toLocaleString()} x ${item.unitType || 'un'}</span>
@@ -639,10 +629,16 @@
 
     function renderAdminProducts() {
       const container = document.getElementById('adminProductsList');
+      if(products.length === 0) {
+        container.innerHTML = `<div class="col-span-full text-center py-8 text-slate-400"><p>No hay productos guardados. Toca en "Nuevo Producto" para agregar uno.</p></div>`;
+        lucide.createIcons();
+        return;
+      }
+
       container.innerHTML = products.map(p => `
         <div class="bg-white rounded-2xl border p-4 shadow-sm flex flex-col justify-between space-y-3">
           <div class="flex items-center gap-3">
-            <img src="${p.image}" class="w-16 h-16 rounded-xl object-cover">
+            <img src="${p.image || 'https://images.unsplash.com/photo-1578985545062-69928b1d9587?auto=format&fit=crop&w=600&q=80'}" class="w-16 h-16 rounded-xl object-cover">
             <div>
               <span class="text-[10px] font-bold bg-pink-50 text-pink-600 px-2 py-0.5 rounded">${p.category}</span>
               <h4 class="font-bold text-slate-900 text-sm mt-1">${p.name}</h4>
@@ -661,14 +657,28 @@
       lucide.createIcons();
     }
 
+    // COMPRIMIR IMAGEN ANTES DE GUARDAR
     window.previewImage = function(e) {
       const file = e.target.files[0];
       if(file) {
         const reader = new FileReader();
         reader.onload = (evt) => {
-          document.getElementById('prodImageBase64').value = evt.target.result;
-          document.getElementById('imagePreview').src = evt.target.result;
-          document.getElementById('imagePreviewContainer').classList.remove('hidden');
+          const img = new Image();
+          img.onload = () => {
+            const canvas = document.createElement('canvas');
+            const maxDim = 400; // Redimensionar imagen para evitar sobrecargar Firestore
+            let w = img.width, h = img.height;
+            if (w > h) { if (w > maxDim) { h *= maxDim / w; w = maxDim; } }
+            else { if (h > maxDim) { w *= maxDim / h; h = maxDim; } }
+            canvas.width = w; canvas.height = h;
+            const ctx = canvas.getContext('2d');
+            ctx.drawImage(img, 0, 0, w, h);
+            const compressed = canvas.toDataURL('image/jpeg', 0.7);
+            document.getElementById('prodImageBase64').value = compressed;
+            document.getElementById('imagePreview').src = compressed;
+            document.getElementById('imagePreviewContainer').classList.remove('hidden');
+          };
+          img.src = evt.target.result;
         };
         reader.readAsDataURL(file);
       }
@@ -687,8 +697,8 @@
         document.getElementById('prodCategory').value = p.category;
         document.getElementById('prodPrice').value = p.price;
         document.getElementById('prodUnitType').value = p.unitType || 'un';
-        document.getElementById('prodImageBase64').value = p.image;
-        document.getElementById('prodDesc').value = p.desc;
+        document.getElementById('prodImageBase64').value = p.image || '';
+        document.getElementById('prodDesc').value = p.desc || '';
         document.getElementById('prodAvailable').checked = p.available;
         if(p.image) {
           document.getElementById('imagePreview').src = p.image;
@@ -706,29 +716,44 @@
 
     window.saveProduct = async function(e) {
       e.preventDefault();
-      const id = document.getElementById('prodId').value || "prod-" + Date.now();
-      const name = document.getElementById('prodName').value.trim();
-      const category = document.getElementById('prodCategory').value;
-      const price = parseFloat(document.getElementById('prodPrice').value);
-      const unitType = document.getElementById('prodUnitType').value;
-      const desc = document.getElementById('prodDesc').value.trim();
-      const available = document.getElementById('prodAvailable').checked;
-      let image = document.getElementById('prodImageBase64').value;
+      const btnSave = document.getElementById('btnSaveProd');
+      btnSave.innerText = "Guardando...";
+      btnSave.disabled = true;
 
-      if(!image && document.getElementById('prodId').value) {
-        const existing = products.find(p => p.id === id);
-        image = existing ? existing.image : "";
+      try {
+        const id = document.getElementById('prodId').value || "prod-" + Date.now();
+        const name = document.getElementById('prodName').value.trim();
+        const category = document.getElementById('prodCategory').value;
+        const price = parseFloat(document.getElementById('prodPrice').value);
+        const unitType = document.getElementById('prodUnitType').value;
+        const desc = document.getElementById('prodDesc').value.trim();
+        const available = document.getElementById('prodAvailable').checked;
+        let image = document.getElementById('prodImageBase64').value;
+
+        if(!image && document.getElementById('prodId').value) {
+          const existing = products.find(p => p.id === id);
+          image = existing ? existing.image : "";
+        }
+        if(!image) image = "https://images.unsplash.com/photo-1578985545062-69928b1d9587?auto=format&fit=crop&w=600&q=80";
+
+        const prodData = { name, category, price, unitType, desc, available, image };
+        await setDoc(doc(db, "products", id), prodData);
+        closeProductModal();
+      } catch (err) {
+        alert("Error al guardar: " + err.message);
+      } finally {
+        btnSave.innerText = "Guardar";
+        btnSave.disabled = false;
       }
-      if(!image) image = "https://images.unsplash.com/photo-1578985545062-69928b1d9587?auto=format&fit=crop&w=600&q=80";
-
-      const prodData = { name, category, price, unitType, desc, available, image };
-      await setDoc(doc(db, "products", id), prodData);
-      closeProductModal();
     }
 
     window.deleteProduct = async function(id) {
-      if(confirm("¿Eliminar producto?")) {
-        await deleteDoc(doc(db, "products", id));
+      if(confirm("¿Eliminar este producto permanentemente?")) {
+        try {
+          await deleteDoc(doc(db, "products", id));
+        } catch (err) {
+          alert("Error al eliminar: " + err.message);
+        }
       }
     }
   </script>
